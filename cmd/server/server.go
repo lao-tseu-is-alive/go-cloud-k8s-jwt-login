@@ -4,7 +4,7 @@ import (
 	"embed"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common/pkg/gohttp"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common/pkg/golog"
-	"github.com/lao-tseu-is-alive/go-cloud-k8s-common/pkg/version"
+	"github.com/lao-tseu-is-alive/go-cloud-k8s-jwt-login/pkg/version"
 	"io/fs"
 	"log"
 	"net/http"
@@ -76,8 +76,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("💥💥 error golog.NewLogger error: %v'\n", err)
 	}
-	l.Info("🚀🚀 Starting App %s version:%s from %s", APP, version.VERSION, version.REPOSITORY)
-	myVersionReader := gohttp.NewSimpleVersionReader(APP, version.VERSION, version.REVISION)
+	l.Info("🚀🚀 Starting App:'%s', ver:%s, build:%s, from: %s", APP, version.VERSION, version.Build, version.REPOSITORY)
+	myVersionReader := gohttp.NewSimpleVersionReader(APP, version.VERSION, version.REPOSITORY, version.Build)
 	server := gohttp.CreateNewServerFromEnvOrFail(
 		defaultPort,
 		defaultServerIp,
@@ -87,14 +87,11 @@ func main() {
 		myVersionReader,
 		l)
 
-	// curl -vv  -X GET  -H 'Content-Type: application/json'  http://localhost:9999/time	==>200 OK , {"time":"2024-07-15T15:30:21+02:00"}
-	server.AddRoute("GET /hello", gohttp.GetStaticPageHandler("Hello", "Hello World!", l))
 	mux := server.GetRouter()
 	myJwt := server.JwtCheck
 	mux.Handle("POST /login", gohttp.GetLoginPostHandler(server))
 	// Protected endpoint (using jwtMiddleware)
 	mux.Handle("GET /protected", myJwt.JwtMiddleware(GetProtectedHandler(server, l)))
-
 	mux.Handle("GET /*", gohttp.NewPrometheusMiddleware(
 		server.GetPrometheusRegistry(), nil).
 		WrapHandler("GET /*", GetMyDefaultHandler(server, defaultWebRootDir, content)),

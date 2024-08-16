@@ -3,7 +3,7 @@ module github.com/lao-tseu-is-alive/go-cloud-k8s-jwt-login
 go 1.22.5
 
 require (
-	github.com/lao-tseu-is-alive/go-cloud-k8s-common v0.3.7
+	github.com/lao-tseu-is-alive/go-cloud-k8s-common v0.3.8
 	github.com/stretchr/testify v1.9.0
 )
 
