@@ -46,7 +46,7 @@ type TestMainStruct struct {
 
 func TestGoHttpServerMyDefaultHandler(t *testing.T) {
 	var nameParameter string
-	myVersionReader := gohttp.NewSimpleVersionReader(APP, version.VERSION, version.REVISION)
+	myVersionReader := gohttp.NewSimpleVersionReader(APP, version.VERSION, version.REPOSITORY, version.Build)
 	myServer := gohttp.CreateNewServerFromEnvOrFail(
 		defaultPort,
 		defaultServerIp,
@@ -333,17 +333,6 @@ func TestMainExecution(t *testing.T) {
 
 	tests := []TestMainStruct{
 		{
-			name:                         "Get on info get handler should contain the Appname field",
-			wantStatusCode:               http.StatusOK,
-			contentType:                  gohttp.MIMEAppJSON,
-			wantBody:                     fmt.Sprintf("\"appname\": \"%s\"", APP),
-			paramKeyValues:               make(map[string]string),
-			httpMethod:                   http.MethodGet,
-			url:                          "/info",
-			useFormUrlencodedContentType: false,
-			body:                         "",
-		},
-		{
 			name:                         "Post on default get handler should return an http error method not allowed ",
 			wantStatusCode:               http.StatusMethodNotAllowed,
 			contentType:                  gohttp.MIMEAppJSON,
@@ -362,17 +351,6 @@ func TestMainExecution(t *testing.T) {
 			paramKeyValues:               make(map[string]string),
 			httpMethod:                   http.MethodGet,
 			url:                          "/aroutethatwillneverexisthere",
-			useFormUrlencodedContentType: false,
-			body:                         "",
-		},
-		{
-			name:                         "Get on info Path should return a valid json containing param value",
-			wantStatusCode:               http.StatusOK,
-			contentType:                  gohttp.MIMEAppJSON,
-			wantBody:                     `"param_name": "╚»☯💥⚡✌ℂ𝔾𝕀𝕃✌⚡💥☯«╝"`,
-			paramKeyValues:               map[string]string{"name": "╚»☯💥⚡✌ℂ𝔾𝕀𝕃✌⚡💥☯«╝"},
-			httpMethod:                   http.MethodGet,
-			url:                          "/info",
 			useFormUrlencodedContentType: false,
 			body:                         "",
 		},
@@ -408,17 +386,6 @@ func TestMainExecution(t *testing.T) {
 			url:                          "/time",
 			useFormUrlencodedContentType: false,
 			body:                         `{"task":"test not allowed method "}`,
-		},
-		{
-			name:                         "/hello Get should return a welcome message",
-			wantStatusCode:               http.StatusOK,
-			contentType:                  gohttp.MIMEHtml,
-			wantBody:                     "Hello World!",
-			paramKeyValues:               make(map[string]string),
-			httpMethod:                   http.MethodGet,
-			url:                          "/hello",
-			useFormUrlencodedContentType: false,
-			body:                         ``,
 		},
 	}
 

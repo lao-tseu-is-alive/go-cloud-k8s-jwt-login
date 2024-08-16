@@ -1,0 +1,4 @@
+DROP TABLE IF EXISTS go_user;
+DROP TABLE IF  EXISTS go_group;
+DROP TABLE IF  EXISTS go_orgunit;
+DROP TYPE IF EXISTS  orgunit_type;
