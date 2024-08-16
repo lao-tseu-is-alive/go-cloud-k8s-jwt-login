@@ -4,7 +4,7 @@ go 1.22.5
 
 require (
 	github.com/golang-migrate/migrate/v4 v4.17.1
-	github.com/lao-tseu-is-alive/go-cloud-k8s-common v0.3.9
+	github.com/lao-tseu-is-alive/go-cloud-k8s-common v0.3.10
 	github.com/stretchr/testify v1.9.0
 )
 

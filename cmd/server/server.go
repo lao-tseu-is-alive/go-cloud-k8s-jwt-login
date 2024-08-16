@@ -7,6 +7,7 @@ import (
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common/pkg/database"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common/pkg/gohttp"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common/pkg/golog"
+	"github.com/lao-tseu-is-alive/go-cloud-k8s-common/pkg/metadata"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common/pkg/tools"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-jwt-login/pkg/version"
 	"io/fs"
@@ -105,7 +106,15 @@ func main() {
 	}
 	l.Info("connected to db version : %s", dbVersion)
 	// checking metadata information
-	//metadataService := metadata.Service{		Log: l,		Db:  db,	}
+	metadataService := metadata.Service{Log: l, Db: db}
+	metadataService.CreateMetadataTableOrFail()
+	found, ver := metadataService.GetServiceVersionOrFail(version.APP)
+	if found {
+		l.Info("service %s was found in metadata with version: %s", version.APP, ver)
+	} else {
+		l.Info("service %s was not found in metadata", version.APP)
+	}
+	metadataService.SetServiceVersionOrFail(version.APP, version.VERSION)
 
 	myVersionReader := gohttp.NewSimpleVersionReader(APP, version.VERSION, version.REPOSITORY, version.Build)
 	server := gohttp.CreateNewServerFromEnvOrFail(
