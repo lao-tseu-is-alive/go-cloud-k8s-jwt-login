@@ -1,2 +1,1 @@
 DROP TABLE IF EXISTS go_user;
-DROP TYPE IF EXISTS  orgunit_type;

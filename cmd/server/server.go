@@ -2,7 +2,10 @@ package main
 
 import (
 	"embed"
+	"errors"
+	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/pgx/v5"
+	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common/pkg/config"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common/pkg/database"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common/pkg/gohttp"
@@ -14,17 +17,19 @@ import (
 	"log"
 	"net/http"
 	"runtime"
+	"strings"
 )
 
 const (
-	APP               = "goCloudK8sJwtLoginServer"
-	defaultPort       = 8888
-	defaultServerIp   = "0.0.0.0"
-	defaultServerPath = "/"
-	defaultWebRootDir = "front/dist/"
-	defaultAdminId    = 98765
-	defaultAdminUser  = "goadmin"
-	defaultAdminEmail = "goadmin@lausanne.ch"
+	APP                        = "goCloudK8sJwtLoginServer"
+	defaultPort                = 8888
+	defaultServerIp            = "0.0.0.0"
+	defaultServerPath          = "/"
+	defaultWebRootDir          = "front/dist/"
+	defaultSqlDbMigrationsPath = "db/migrations"
+	defaultAdminId             = 98765
+	defaultAdminUser           = "goadmin"
+	defaultAdminEmail          = "goadmin@lausanne.ch"
 )
 
 // content holds our static web server content.
@@ -115,6 +120,27 @@ func main() {
 		l.Info("service %s was not found in metadata", version.APP)
 	}
 	metadataService.SetServiceVersionOrFail(version.APP, version.VERSION)
+
+	// example of go-migrate db migration with embed files in go program
+	// https://github.com/golang-migrate/migrate
+	// https://github.com/golang-migrate/migrate/blob/master/database/postgres/TUTORIAL.md
+	d, err := iofs.New(sqlMigrations, defaultSqlDbMigrationsPath)
+	if err != nil {
+		l.Fatal("💥💥 error doing iofs.New for db migrations  error: %v\n", err)
+	}
+	dsn := strings.Replace(dbDsn, "postgres", "pgx5", 1)
+	m, err := migrate.NewWithSourceInstance("iofs", d, dsn)
+	if err != nil {
+		l.Fatal("💥💥 error doing migrate.NewWithSourceInstance(iofs, dbURL:%s)  error: %v\n", dbDsn, err)
+	}
+
+	err = m.Up()
+	if err != nil {
+		//if err == m.
+		if !errors.Is(err, migrate.ErrNoChange) {
+			l.Fatal("💥💥 error doing migrate.Up error: %v\n", err)
+		}
+	}
 
 	myVersionReader := gohttp.NewSimpleVersionReader(APP, version.VERSION, version.REPOSITORY, version.Build)
 	server := gohttp.CreateNewServerFromEnvOrFail(
