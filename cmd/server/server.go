@@ -143,17 +143,29 @@ func main() {
 	}
 
 	myVersionReader := gohttp.NewSimpleVersionReader(APP, version.VERSION, version.REPOSITORY, version.Build)
+
+	// Create a new JWT checker
+	myJwt := gohttp.NewJwtChecker(
+		config.GetJwtSecretFromEnvOrPanic(),
+		config.GetJwtIssuerFromEnvOrPanic(),
+		config.GetJwtDurationFromEnvOrPanic(60),
+		l)
+	// Create a new Authenticator with a simple admin user
+	myAuthenticator := gohttp.NewSimpleAdminAuthenticator(
+		config.GetAdminUserFromFromEnvOrPanic(defaultAdminUser),
+		config.GetAdminPasswordFromFromEnvOrPanic(),
+		config.GetAdminEmailFromFromEnvOrPanic(defaultAdminEmail),
+		config.GetAdminIdFromFromEnvOrPanic(defaultAdminId),
+		myJwt)
 	server := gohttp.CreateNewServerFromEnvOrFail(
 		defaultPort,
 		defaultServerIp,
-		defaultAdminUser,
-		defaultAdminEmail,
-		defaultAdminId,
+		myAuthenticator,
+		myJwt,
 		myVersionReader,
 		l)
 
 	mux := server.GetRouter()
-	myJwt := server.JwtCheck
 	mux.Handle("POST /login", gohttp.GetLoginPostHandler(server))
 	// Protected endpoint (using jwtMiddleware)
 	mux.Handle("GET /protected", myJwt.JwtMiddleware(GetProtectedHandler(server, l)))
