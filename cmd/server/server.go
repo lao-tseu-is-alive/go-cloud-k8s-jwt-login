@@ -12,6 +12,7 @@ import (
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common/pkg/golog"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common/pkg/metadata"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-common/pkg/tools"
+	"github.com/lao-tseu-is-alive/go-cloud-k8s-jwt-login/pkg/login"
 	"github.com/lao-tseu-is-alive/go-cloud-k8s-jwt-login/pkg/version"
 	"io/fs"
 	"log"
@@ -148,25 +149,25 @@ func main() {
 	myJwt := gohttp.NewJwtChecker(
 		config.GetJwtSecretFromEnvOrPanic(),
 		config.GetJwtIssuerFromEnvOrPanic(),
+		version.APP,
 		config.GetJwtDurationFromEnvOrPanic(60),
 		l)
-	// Create a new Authenticator with a simple admin user
-	myAuthenticator := gohttp.NewSimpleAdminAuthenticator(
-		config.GetAdminUserFromFromEnvOrPanic(defaultAdminUser),
-		config.GetAdminPasswordFromFromEnvOrPanic(),
-		config.GetAdminEmailFromFromEnvOrPanic(defaultAdminEmail),
-		config.GetAdminIdFromFromEnvOrPanic(defaultAdminId),
-		myJwt)
+
+	loginStore := login.GetStorageInstanceOrPanic("pgx", db, l)
+	myService := login.NewLoginService(db, loginStore, myJwt)
+
 	server := gohttp.CreateNewServerFromEnvOrFail(
 		defaultPort,
 		defaultServerIp,
-		myAuthenticator,
+		myService,
 		myJwt,
 		myVersionReader,
 		l)
 
 	mux := server.GetRouter()
 	mux.Handle("POST /login", gohttp.GetLoginPostHandler(server))
+	// handler to get a jwt token from header
+	mux.Handle("GET /jwtinfo.js", myService.GetJwtInfoHandler())
 	// Protected endpoint (using jwtMiddleware)
 	mux.Handle("GET /protected", myJwt.JwtMiddleware(GetProtectedHandler(server, l)))
 	mux.Handle("GET /*", gohttp.NewPrometheusMiddleware(

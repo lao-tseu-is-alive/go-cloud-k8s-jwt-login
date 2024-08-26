@@ -26,3 +26,4 @@ go.work.sum
 
 .idea
 /.env_for_github.txt
+/go_cloud_k8s_jwt_login.conf
