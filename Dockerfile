@@ -5,14 +5,6 @@ ENV PATH /usr/local/go/bin:$PATH
 ENV GOLANG_VERSION 1.22.5
 
 
-# Add Maintainer Info
-LABEL maintainer="cgil"
-LABEL org.opencontainers.image.title="go-cloud-k8s-jwt-login"
-LABEL org.opencontainers.image.description="This is a go-cloud-k8s-jwt-login container image, Allows to get a jwt token from a userid received by header (like f5)"
-LABEL org.opencontainers.image.url="https://ghcr.io/lao-tseu-is-alive/go-cloud-k8s-jwt-login:latest"
-LABEL org.opencontainers.image.authors="cgil"
-LABEL org.opencontainers.image.licenses="MIT"
-
 # Set the Current Working Directory inside the container
 WORKDIR /app
 
@@ -33,6 +25,16 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o go-cloud-k8s-jwt-
 
 ######## Start a new stage  #######
 FROM scratch
+
+# Add Maintainer Info
+LABEL maintainer="cgil"
+LABEL org.opencontainers.image.title="go-cloud-k8s-jwt-login"
+LABEL org.opencontainers.image.description="This is a go-cloud-k8s-jwt-login container image, Allows to get a jwt token from a userid received by header (like f5)"
+#LABEL org.opencontainers.image.url="https://ghcr.io/lao-tseu-is-alive/go-cloud-k8s-jwt-login:latest"
+LABEL org.opencontainers.image.authors="cgil"
+LABEL org.opencontainers.image.licenses="MIT"
+
+
 USER 12121:12121
 WORKDIR /goapp
 # Copy the Pre-built binary file from the previous stage
