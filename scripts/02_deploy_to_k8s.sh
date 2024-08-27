@@ -12,9 +12,9 @@ DEPLOYMENT_TEMPLATE="scripts/k8s-deployment_template.yml"
 K8S_DEPLOYMENT=deployment.yml
 echo "## Checking if ENV variable APP_NAME is already defined..."
 # checks whether APP_NAME has length equal to zero:
-if [[ -z "${APP_NAME}" ]]
+if [[ -z "${APP_NAME_SNAKE}" ]]
 then
-	echo "## ENV variable APP_NAME not found"
+	echo "## ENV variable APP_NAME_SNAKE not found"
       	FILE=getAppInfo.sh
 	if test -f "$FILE"; then
 		echo "## Sourcing $FILE"
@@ -29,11 +29,11 @@ then
 		exit 1
 	fi
 else
-	echo "## ENV variable APP_NAME is defined to : ${APP_NAME} . So we will use this one !"
+	echo "## ENV variable APP_NAME_SNAKE is defined to : ${APP_NAME_SNAKE} . So we will use this one !"
 fi
-echo "## USING APP_NAME: \"${APP_NAME}\", APP_VERSION: \"${APP_VERSION}\""
+echo "## USING APP_NAME_SNAKE: \"${APP_NAME_SNAKE}\", APP_VERSION: \"${APP_VERSION}\""
 K8s_NAMESPACE="go-testing"
-IMAGE_FILTER="${CONTAINER_REGISTRY_ID}/${APP_NAME}"
+IMAGE_FILTER="${CONTAINER_REGISTRY_ID}/${APP_NAME_SNAKE}"
 echo "## Checking if image exist  ${IMAGE_FILTER} tag:v${APP_VERSION}"
 JSON_APP=$(${DOCKER_BIN} images --format '{{json .}}' | jq ".| select(.Repository | contains(\"${IMAGE_FILTER}\")) |select(.Tag | contains(\"v${APP_VERSION}\"))")
 APP_ID=$(echo "${JSON_APP}" | jq '.|.ID')
@@ -50,7 +50,7 @@ then
     echo "${JSON_APP}" | jq '.'
 	else
 	  echo "## 💥💥 ERROR: ${IMAGE_FILTER}:v${APP_VERSION} image was not found in remote registry ! "
-	  echo "## 💥💥 check if your image exist in https://github.com/${CONTAINER_REGISTRY_USER}/${APP_NAME}/pkgs/container/${APP_NAME}"
+	  echo "## 💥💥 check if your image exist in https://github.com/${CONTAINER_REGISTRY_USER}/${APP_NAME_SNAKE}/pkgs/container/${APP_NAME_SNAKE}"
 	  echo "## 💥💥 may be you should tag a new release an wait for github actions to build it ?"
 	  exit
 	fi
@@ -62,8 +62,8 @@ echo "## Generating a deployment based on template : ${DEPLOYMENT_TEMPLATE}"
 DEPLOYMENT_DIRECTORY="deployments/${K8s_NAMESPACE}"
 echo "## will store the deployment in directory    : ${DEPLOYMENT_DIRECTORY}"
 mkdir "${DEPLOYMENT_DIRECTORY}"
-echo "## will substitute APP_NAME : ${APP_NAME}"
-sed s/APP_NAME/"${APP_NAME}"/g  ${DEPLOYMENT_TEMPLATE} > "${DEPLOYMENT_DIRECTORY}"/${K8S_DEPLOYMENT}
+echo "## will substitute APP_NAME : ${APP_NAME_SNAKE}"
+sed s/APP_NAME/"${APP_NAME_SNAKE}"/g  ${DEPLOYMENT_TEMPLATE} > "${DEPLOYMENT_DIRECTORY}"/${K8S_DEPLOYMENT}
 echo "## will substitute APP_VERSION : v${APP_VERSION}"
 sed -i s/APP_VERSION/"v${APP_VERSION}"/g  "${DEPLOYMENT_DIRECTORY}"/${K8S_DEPLOYMENT}
 echo "## will substitute GO_CONTAINER_REGISTRY_PREFIX : ${CONTAINER_REGISTRY_ID}"
@@ -87,14 +87,14 @@ then
     if [[ $K8S_PODS_IMAGES =~ ${IMAGE_FILTER}:v${APP_VERSION} ]];
     then
       echo "## 💥💥 ERROR: ${IMAGE_FILTER}:v${APP_VERSION} image was already deployed ! "
-       kubectl get pods -n "${K8s_NAMESPACE}" -l app="${APP_NAME}"
+       kubectl get pods -n "${K8s_NAMESPACE}" -l app="${APP_NAME_SNAKE}"
     fi
     #K8S_APP=$(kubectl get deployments --namespace=${K8s_NAMESPACE}" -o json |jq '.items[]?.spec.template.spec.containers[]?.image')
     echo "## Deploying ${K8S_DEPLOYMENT} in the K8S cluster in namespace ${K8s_NAMESPACE}"
     kubectl apply -f "${DEPLOYMENT_DIRECTORY}"/${K8S_DEPLOYMENT} --namespace="${K8s_NAMESPACE}"
     # Check deployment rollout status every 5 seconds (max 1 minutes) until complete.
     ATTEMPTS=0
-    ROLLOUT_STATUS_CMD="kubectl rollout status deployment ${APP_NAME} --namespace=${K8s_NAMESPACE}"
+    ROLLOUT_STATUS_CMD="kubectl rollout status deployment ${APP_NAME_SNAKE} --namespace=${K8s_NAMESPACE}"
     until $ROLLOUT_STATUS_CMD || [ $ATTEMPTS -eq 12 ]; do
       echo "## doing rollout status attempt num: ${ATTEMPTS} ..."
       $ROLLOUT_STATUS_CMD
