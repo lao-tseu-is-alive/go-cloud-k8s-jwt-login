@@ -75,6 +75,7 @@ echo "## Checking for vulnerabilities with trivy"
 if trivy image --exit-code 1 --ignore-unfixed --severity MEDIUM,HIGH,CRITICAL "${IMAGE_FILTER}:v${APP_VERSION}";
 then
   echo "## ✓ ☺ 🚀 OK: Cool no vulnerabilities was found in your kubernetes manifest ${DEPLOYMENT}"
+  mkdir -p "${DEPLOYMENT_DIRECTORY}" 
   cd "${DEPLOYMENT_DIRECTORY}" || exit
   echo "## Checking for vulnerabilities in ${K8S_DEPLOYMENT}"
   if trivy config --exit-code 1 --severity MEDIUM,HIGH,CRITICAL . ;

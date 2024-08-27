@@ -1,8 +1,8 @@
 ---
 ### TEMPLATE FOR A SERVICE AND DEPLOYMENT ON KUBERNETES just substitute the next keywords with your own values
-### APP_NAME     : the name of your application or container image
-### APP_VERSION  : the version of the app image to deploy
-### GO_CONTAINER_REGISTRY_PREFIX  : the prefix to your images in your container registry
+### go-cloud-k8s-jwt-login     : the name of your application or container image
+### v0.1.8  : the version of the app image to deploy
+### ghcr.io/lao-tseu-is-alive  : the prefix to your images in your container registry
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -26,7 +26,7 @@ metadata:
   name: compute-resources
   namespace: go-testing
   labels:
-    app: APP_NAME
+    app: go-cloud-k8s-jwt-login
 spec:
 ### ADAPT the values above to your need remember that you m
   hard:
@@ -67,7 +67,7 @@ metadata:
   namespace: go-testing
   name: pod-reader-role
   labels:
-    app: APP_NAME
+    app: go-cloud-k8s-jwt-login
 rules:
   - apiGroups: [""]  # "" indicates the core API group
     resources: ["pods", "namespaces"]
@@ -82,7 +82,7 @@ kind: ClusterRoleBinding
 metadata:
   name: pod-reader-role-binding
   labels:
-    app: APP_NAME
+    app: go-cloud-k8s-jwt-login
 subjects:
   - kind: Group
     name: system:serviceaccounts
@@ -97,7 +97,7 @@ kind: ClusterRole
 metadata:
   name: service-reader-role
   labels:
-    app: APP_NAME
+    app: go-cloud-k8s-jwt-login
 rules:
   - apiGroups: [""]
     resources: ["services"]
@@ -108,7 +108,7 @@ kind: ClusterRoleBinding
 metadata:
   name: service-reader-role-binding
   labels:
-    app: APP_NAME
+    app: go-cloud-k8s-jwt-login
 subjects:
   - kind: Group
     name: system:serviceaccounts
@@ -119,14 +119,14 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
 ---
 ## with this service you can connect from another pod with
-## curl http://APP_NAME-service.go-testing:9999
+## curl http://go-cloud-k8s-jwt-login-service.go-testing:9999
 apiVersion: v1
 kind: Service                    # Type of kubernetes resource
 metadata:
-  name: APP_NAME-service   # Name of the resource
+  name: go-cloud-k8s-jwt-login-service   # Name of the resource
   namespace: go-testing
   labels:     # The labels that will be applied
-    app: APP_NAME
+    app: go-cloud-k8s-jwt-login
   annotations:
     externalTrafficPolicy: "local"
 spec:
@@ -145,15 +145,15 @@ spec:
       port: 9999
       targetPort: 9999            # Should match the PORT env variable in deployment and containerPort that the Go application listens on
   selector:
-    app: APP_NAME         # Map any pod with this label `app=APP_NAME` to this service
+    app: go-cloud-k8s-jwt-login         # Map any pod with this label `app=go-cloud-k8s-jwt-login` to this service
 ---
 apiVersion: apps/v1
 kind: Deployment                 # Type of Kubernetes resource
 metadata:
-  name: APP_NAME           # Name of the Kubernetes resource
+  name: go-cloud-k8s-jwt-login           # Name of the Kubernetes resource
   namespace: go-testing
   labels:
-    app: APP_NAME
+    app: go-cloud-k8s-jwt-login
 spec:
   replicas: 2                    # Number of pods to run at any given time
   revisionHistoryLimit: 5        # The number of old ReplicaSets to retain to allow rollback
@@ -165,11 +165,11 @@ spec:
       maxSurge: 2               # maximum number of pods that can be scheduled above the desired number of pods.
   selector:
     matchLabels:
-      app: APP_NAME              # This deployment applies to any Pods matching the specified label
+      app: go-cloud-k8s-jwt-login              # This deployment applies to any Pods matching the specified label
   template:                      # This deployment will create a set of pods using the configurations in this template
     metadata:
       labels:                    # The labels that will be applied to all the pods in this deployment
-        app: APP_NAME
+        app: go-cloud-k8s-jwt-login
     spec:                        # Spec for the Pod base config, securityContext can be overridden in container
       # kubectl label nodes gok8sw01.lausanne.ch kubernetes.io/role=worker
       # comment the two next lines if you do not have worker nodes (rancher-desktop)
@@ -185,8 +185,8 @@ spec:
         supplementalGroups:
           - 100
       containers:
-      - name: APP_NAME
-        image: GO_CONTAINER_REGISTRY_PREFIX/APP_NAME:APP_VERSION
+      - name: go-cloud-k8s-jwt-login
+        image: ghcr.io/lao-tseu-is-alive/go-cloud-k8s-jwt-login:v0.1.8
         imagePullPolicy: Always
         securityContext:
           seccompProfile:
@@ -227,6 +227,71 @@ spec:
         env:
           - name: PORT
             value: "9999"
+          - name: ADMIN_USER
+            valueFrom:
+              configMapKeyRef:
+                key: ADMIN_USER
+                name: app-config-go-cloud-k8s-jwt-login
+          - name: ADMIN_PASSWORD
+            valueFrom:
+              configMapKeyRef:
+                key: ADMIN_PASSWORD
+                name: app-config-go-cloud-k8s-jwt-login
+          - name: ADMIN_EMAIL
+            valueFrom:
+              configMapKeyRef:
+                key: ADMIN_EMAIL
+                name: app-config-go-cloud-k8s-jwt-login
+          - name: ADMIN_ID
+            valueFrom:
+              configMapKeyRef:
+                key: ADMIN_ID
+                name: app-config-go-cloud-k8s-jwt-login
+          - name: JWT_SECRET
+            valueFrom:
+              configMapKeyRef:
+                key: JWT_SECRET
+                name: app-config-go-cloud-k8s-jwt-login
+          - name: JWT_ISSUER_ID
+            valueFrom:
+              configMapKeyRef:
+                key: JWT_ISSUER_ID
+                name: app-config-go-cloud-k8s-jwt-login
+          - name: DB_DRIVER
+            valueFrom:
+              configMapKeyRef:
+                key: DB_DRIVER
+                name: app-config-go-cloud-k8s-jwt-login
+          - name: DB_HOST
+            valueFrom:
+              configMapKeyRef:
+                key: DB_HOST
+                name: app-config-go-cloud-k8s-jwt-login
+          - name: DB_PORT
+            valueFrom:
+              configMapKeyRef:
+                key: DB_PORT
+                name: app-config-go-cloud-k8s-jwt-login
+          - name: DB_NAME
+            valueFrom:
+              configMapKeyRef:
+                key: DB_NAME
+                name: app-config-go-cloud-k8s-jwt-login
+          - name: DB_USER
+            valueFrom:
+              configMapKeyRef:
+                key: DB_USER
+                name: app-config-go-cloud-k8s-jwt-login
+          - name: DB_PASSWORD
+            valueFrom:
+              configMapKeyRef:
+                key: DB_PASSWORD
+                name: app-config-go-cloud-k8s-jwt-login
+          - name: DB_SSL_MODE
+            valueFrom:
+              configMapKeyRef:
+                key: DB_SSL_MODE
+                name: app-config-go-cloud-k8s-jwt-login          
           - name: MY_NODE_NAME
             valueFrom:
               fieldRef:
