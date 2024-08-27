@@ -7,6 +7,8 @@ import (
 )
 
 type Storage interface {
+	//CreateOrUpdateAdminUserOrPanic creates or updates the admin user in the store
+	CreateOrUpdateAdminUserOrPanic()
 	// Get returns the user with the specified user login.
 	Get(login string) (*User, error)
 	// Exist returns true only if a user with the specified login exists in store.

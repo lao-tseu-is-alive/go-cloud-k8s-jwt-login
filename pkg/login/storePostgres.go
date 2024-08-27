@@ -111,19 +111,12 @@ func NewPgxDB(db database.DB, log golog.MyLogger) (Storage, error) {
 	psql.Conn = pgConn
 	psql.dbi = db
 	psql.log = log
-	var numberOfRows int
-	errTypeThingTable := pgConn.QueryRow(context.Background(), countUsers).Scan(&numberOfRows)
-	if errTypeThingTable != nil {
-		log.Error("Unable to retrieve the number of users error: %v", err)
+	var postgresVersion string
+	errVersionPostgres := pgConn.QueryRow(context.Background(), getPostgresVersion).Scan(&postgresVersion)
+	if errVersionPostgres != nil {
+		log.Error("Unable to retrieve the postgres version,  error: %v", err)
 		return nil, err
 	}
-
-	if numberOfRows > 0 {
-		log.Info("'database contains %d records'", numberOfRows)
-	} else {
-		log.Warn("«go_thing.type_thing» is empty ! it should contain at least one row")
-		return nil, errors.New("problem with initial content of database «go_thing.type_thing» should not be empty ")
-	}
-
+	log.Info("connected to postgres database version %s", postgresVersion)
 	return &psql, err
 }

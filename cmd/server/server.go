@@ -154,6 +154,7 @@ func main() {
 		l)
 
 	loginStore := login.GetStorageInstanceOrPanic("pgx", db, l)
+	loginStore.CreateOrUpdateAdminUserOrPanic()
 	myService := login.NewLoginService(db, loginStore, myJwt)
 
 	server := gohttp.CreateNewServerFromEnvOrFail(
