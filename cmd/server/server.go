@@ -28,7 +28,7 @@ const (
 	defaultServerPath          = "/"
 	defaultWebRootDir          = "front/dist/"
 	defaultSqlDbMigrationsPath = "db/migrations"
-	defaultAdminId             = 98765
+	defaultAdminId             = 960901
 	defaultAdminUser           = "goadmin"
 	defaultAdminEmail          = "goadmin@lausanne.ch"
 )
